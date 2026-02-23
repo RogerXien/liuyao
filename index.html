@@ -3,84 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI 赛博通灵系统 v10.0 (正式商用版)</title>
+    <title>GEMINI 赛博通灵系统 v6.1 (商业进阶版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
         :root { --gold: #d4af37; --gold-bright: #f9e29a; --royal-yellow: #E6B422; --dark-bg: #030303; }
-        body { background-color: var(--dark-bg); color: var(--gold); font-family: 'Noto Serif SC', serif; background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%); min-height: 100vh; overflow-x: hidden; }
         
-        /* 顶部看板：呼吸节奏灯 */
-        .market-card-pulse { animation: rhythmic-glow 3s infinite ease-in-out; border: 1px solid rgba(212, 175, 55, 0.2); }
-        @keyframes rhythmic-glow { 0%, 100% { border-color: rgba(212, 175, 55, 0.1); box-shadow: 0 0 5px rgba(212, 175, 55, 0.05); } 50% { border-color: rgba(212, 175, 55, 0.6); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); } }
-        
-        /* 卦线：黄金比例修长 */
+        body {
+            background-color: var(--dark-bg);
+            color: var(--gold);
+            font-family: 'Noto Serif SC', serif;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 卦线：修长立体，解决扁平问题 */
         .gua-line { height: 14px; transition: all 0.5s ease; border-radius: 999px; }
         .yang-line { background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 50%, var(--gold) 100%); width: 100%; box-shadow: 0 4px 15px rgba(212,175,55,0.4); }
         .yin-line { display: flex; justify-content: space-between; width: 100%; }
-        .yin-line::before, .yin-line::after { content: ''; height: 100%; width: 44%; background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 50%, var(--gold) 100%); border-radius: 999px; }
+        .yin-line::before, .yin-line::after { content: ''; height: 100%; width: 44%; background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 50%, var(--gold) 100%); border-radius: 999px; box-shadow: 0 4px 12px rgba(212,175,55,0.2); }
         
-        .analysis-content { color: var(--royal-yellow); line-height: 2.2; font-size: 1.1rem; text-align: justify; }
-        .analysis-content h1, .analysis-content h2, .analysis-content h3 { color: var(--gold-bright); font-weight: 900; margin: 1.5rem 0 1rem; border-bottom: 2px solid rgba(212, 175, 55, 0.2); padding-bottom: 0.5rem; display: block; }
-        
+        /* 顶部行情看板光效：恢复 */
+        .price-update-flash { animation: hub-glow 1s ease-out; }
+        @keyframes hub-glow { 
+            0% { border-color: var(--gold-bright); box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); } 
+            100% { border-color: rgba(212, 175, 55, 0.15); box-shadow: none; } 
+        }
+
+        /* 纯净皇家黄 Markdown 渲染样式 - 物理屏蔽符号 */
+        .analysis-content { color: var(--royal-yellow); line-height: 2; font-size: 1.1rem; }
+        .analysis-content h1, .analysis-content h2, .analysis-content h3 { 
+            color: var(--gold-bright); font-weight: 900; margin: 1.5rem 0 1rem; border-bottom: 2px solid rgba(212, 175, 55, 0.2); padding-bottom: 0.5rem;
+        }
+        .analysis-content strong { color: #FFD700; font-weight: 900; }
+        .analysis-content p { margin-bottom: 1.5rem; }
+
+        .coin-icon { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; background: #111; font-weight: 900; box-shadow: 0 0 12px rgba(212,175,55,0.3); }
+        .coin-spin { animation: coin-flip 0.6s ease-in-out infinite; }
+        @keyframes coin-flip { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+
         .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.15); }
         .premium-btn { border: 1px solid transparent; background: linear-gradient(var(--dark-bg), var(--dark-bg)) padding-box, linear-gradient(45deg, #d4af37, #00f3ff, #ff00de) border-box; }
-        .meditating { animation: deep-breath 2s infinite ease-in-out; pointer-events: none; }
+        
+        .meditating { animation: deep-breath 2.5s infinite ease-in-out; pointer-events: none; }
         @keyframes deep-breath { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.7); } }
 
-        /* 授权状态条 */
-        #auth-status-bar { transition: all 0.3s ease; height: 0; opacity: 0; overflow: hidden; font-weight: 900; }
-        #auth-status-bar.show { height: auto; opacity: 1; margin-bottom: 1.5rem; padding: 0.75rem; }
+        .terminal-scroll::-webkit-scrollbar { width: 4px; }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: #E6B42255; border-radius: 10px; }
+        
+        .qr-placeholder { aspect-ratio: 1; background: #fff; padding: 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; font-size: 13px; text-align: center; }
     </style>
 </head>
 <body class="p-2 md:p-6">
 
     <div class="max-w-7xl mx-auto">
-        <!-- 顶部看板 -->
+        <!-- 顶部状态栏 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div id="hub-btc" class="market-card-pulse glass p-4 rounded-2xl flex justify-between items-center transition-all">
-                <div><p class="text-[10px] text-zinc-400 font-black uppercase tracking-widest leading-none">Bitcoin Core</p><h3 class="text-xl font-black font-mono text-yellow-500 mt-1" id="hub-btc-price">...</h3></div>
-                <div id="hub-btc-change" class="text-xs font-bold leading-none">--%</div>
+            <div id="hub-btc" class="glass p-4 rounded-2xl flex justify-between items-center border border-yellow-900/10">
+                <div><p class="text-[10px] text-zinc-400 font-black uppercase">Bitcoin</p><h3 class="text-xl font-black font-mono text-yellow-500" id="hub-btc-price">同步中...</h3></div>
+                <div id="hub-btc-change" class="text-xs font-bold">--%</div>
             </div>
-            <div id="hub-eth" class="market-card-pulse glass p-4 rounded-2xl flex justify-between items-center transition-all">
-                <div><p class="text-[10px] text-zinc-400 font-black uppercase tracking-widest leading-none">Ethereum Core</p><h3 class="text-xl font-black font-mono text-gray-200 mt-1" id="hub-eth-price">...</h3></div>
-                <div id="hub-eth-change" class="text-xs font-bold leading-none">--%</div>
+            <div id="hub-eth" class="glass p-4 rounded-2xl flex justify-between items-center border border-yellow-900/10">
+                <div><p class="text-[10px] text-zinc-400 font-black uppercase">Ethereum</p><h3 class="text-xl font-black font-mono text-gray-200" id="hub-eth-price">同步中...</h3></div>
+                <div id="hub-eth-change" class="text-xs font-bold">--%</div>
             </div>
-            <div class="glass p-4 rounded-2xl flex flex-col justify-center border border-yellow-600/40 bg-yellow-950/10">
+            <div class="glass p-4 rounded-2xl flex flex-col justify-center border border-yellow-600/30 bg-yellow-950/10">
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-[11px] font-black text-cyan-500 uppercase tracking-tighter" id="hub-ganzhi">同步中</span>
-                    <span id="status-label" class="text-[9px] bg-yellow-900/60 px-2 py-0.5 rounded text-yellow-400 font-black uppercase tracking-widest leading-none">监测中</span>
+                    <span class="text-[11px] font-black text-cyan-500 uppercase tracking-tighter" id="hub-ganzhi">时空同步中...</span>
+                    <span id="status-label" class="text-[10px] bg-yellow-900/60 px-2 py-0.5 rounded text-yellow-400 font-black">免费运营版</span>
                 </div>
                 <div class="flex justify-between items-end">
-                    <div id="hub-time" class="text-xs text-cyan-200 italic font-mono font-bold">00:00:00</div>
-                    <div id="usage-count" class="text-[11px] text-yellow-500 font-black">WAIT...</div>
+                    <div id="hub-time" class="text-xs text-cyan-100 italic font-mono font-bold">00:00:00</div>
+                    <div id="usage-count" class="text-[11px] text-yellow-500 font-black uppercase">LEFT: 1</div>
                 </div>
             </div>
-            <div class="bg-cyan-950/20 border border-cyan-800/30 p-4 rounded-2xl flex flex-col justify-center shadow-xl">
-                <p class="text-[10px] text-cyan-400 font-black uppercase mb-1 tracking-widest">推演结论 (SUMMARY)</p>
-                <div id="hub-timing-text" class="text-[11px] text-cyan-100 truncate italic">待同步...</div>
+            <div class="bg-cyan-950/20 border border-cyan-800/30 p-4 rounded-2xl flex flex-col justify-center">
+                <p class="text-[10px] text-cyan-400 font-black uppercase mb-1 tracking-widest">核心结论摘要 (SYNOPSIS)</p>
+                <div id="hub-timing-text" class="text-[11px] text-cyan-100 truncate italic">待天机同步...</div>
             </div>
         </div>
 
-        <!-- 激活大按钮：物理级消除点状物，使用纯净 SVG -->
+        <!-- 显眼的设置按钮：移除左侧“点状物” -->
         <div class="mb-8 px-1">
-            <button onclick="App.toggleSettings()" class="w-full premium-btn py-5 rounded-2xl flex items-center justify-center gap-3 group hover:brightness-125 transition-all shadow-2xl active:scale-[0.99] border-none outline-none overflow-hidden relative">
-                <svg class="w-5 h-5 text-yellow-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                <span class="text-sm font-black tracking-[0.5em] text-yellow-600 uppercase group-hover:text-yellow-400">系统内核管理与钻石权限激活</span>
+            <button onclick="App.toggleSettings()" class="w-full premium-btn py-4 rounded-2xl flex items-center justify-center gap-6 group hover:brightness-125 transition-all shadow-2xl active:scale-[0.99]">
+                <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+                <span class="text-sm font-black tracking-[0.5em] text-yellow-600 uppercase group-hover:text-yellow-400">系统内核管理与钻石权限激活 (PREMIUM CONFIG)</span>
             </button>
         </div>
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- 左侧区域 -->
             <section class="lg:col-span-4 space-y-6 flex flex-col">
-                <div class="glass p-8 rounded-[2.5rem] shadow-2xl relative border-t border-yellow-900/20 bg-black/20">
-                    <div class="text-center mb-8"><h2 class="text-sm font-black tracking-[0.8em] text-yellow-700 uppercase">Divine Logic</h2></div>
+                <div class="glass p-8 rounded-[2.5rem] shadow-2xl relative border border-yellow-900/20 bg-black/20">
+                    <div class="text-center mb-8">
+                        <h2 class="text-sm font-black tracking-[0.8em] text-yellow-700 uppercase">Divine Casting</h2>
+                    </div>
+
                     <div class="space-y-8">
-                        <!-- 标的输入与实时价格：绝对水平平行 -->
-                        <div class="flex items-center justify-between gap-4 bg-black/60 border border-yellow-900/20 p-5 rounded-2xl focus-within:border-yellow-600 transition-all h-16">
-                            <input type="text" id="target-input" oninput="App.onInputChange()" placeholder="标的(例: BTC)" class="flex-grow bg-transparent text-yellow-500 outline-none text-base font-black placeholder:text-zinc-800 uppercase tracking-widest h-full leading-none">
-                            <div id="input-price-badge" class="text-yellow-500 font-black font-mono text-xl tracking-tighter leading-none h-full flex items-center mb-1"></div>
+                        <!-- 输入框与实时价格：水平完美对齐 -->
+                        <div class="flex items-center gap-4 bg-black/60 border border-yellow-900/20 p-5 rounded-2xl focus-within:border-yellow-600 transition-all shadow-inner">
+                            <input type="text" id="target-input" oninput="App.onInputChange()" placeholder="标的(如: BTC)" class="flex-grow bg-transparent text-yellow-500 outline-none text-base font-black placeholder:text-zinc-800 uppercase tracking-widest">
+                            <div id="input-price-badge" class="text-yellow-500 font-black font-mono text-xl tracking-tighter shadow-gold drop-shadow-lg"></div>
                         </div>
+
                         <div class="flex justify-around py-8 bg-black/40 rounded-[2rem] border border-yellow-900/10">
                             <div id="coin-1" class="coin-icon">?</div><div id="coin-2" class="coin-icon">?</div><div id="coin-3" class="coin-icon">?</div>
                         </div>
@@ -88,165 +115,175 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6 flex-grow min-h-[460px] items-start pt-2">
+                <!-- 卦象显示：强化平行度与修长感 -->
+                <div class="grid grid-cols-2 gap-6 flex-grow min-h-[460px] items-start">
                     <div class="glass p-8 rounded-[3rem] flex flex-col items-center border border-yellow-900/10 h-full">
-                        <div id="gua-name-ben" class="mb-8 text-base font-black text-yellow-500 text-center h-20 flex flex-col justify-center items-center uppercase tracking-tighter leading-tight italic">本卦待起</div>
-                        <div id="gua-preview-ben" class="flex flex-col-reverse gap-8 w-full px-4 justify-center flex-grow"></div>
-                        <p class="mt-auto pt-6 text-[10px] font-black text-yellow-800 uppercase tracking-widest opacity-60 italic">Original</p>
+                        <div id="gua-name-ben" class="mb-8 text-base font-black text-yellow-500 text-center h-20 flex flex-col justify-center items-center uppercase tracking-tighter leading-tight">
+                            <span>本卦待起</span>
+                        </div>
+                        <div id="gua-preview-ben" class="flex flex-col-reverse gap-8 w-full flex-grow px-4"></div>
+                        <p class="mt-8 text-[11px] font-black text-yellow-800 uppercase tracking-widest opacity-60">Original</p>
                     </div>
                     <div class="glass p-8 rounded-[3rem] flex flex-col items-center border border-cyan-900/10 h-full">
-                        <div id="gua-name-bian" class="mb-8 text-base font-black text-cyan-500 text-center h-20 flex flex-col justify-center items-center uppercase tracking-tighter leading-tight italic">变卦待定</div>
-                        <div id="gua-preview-bian" class="flex flex-col-reverse gap-8 w-full px-4 justify-center flex-grow"></div>
-                        <p class="mt-auto pt-6 text-[10px] font-black text-cyan-800 uppercase tracking-widest opacity-60 italic">Transformed</p>
+                        <div id="gua-name-bian" class="mb-8 text-base font-black text-cyan-500 text-center h-20 flex flex-col justify-center items-center uppercase tracking-tighter leading-tight">
+                            <span>变卦待定</span>
+                        </div>
+                        <div id="gua-preview-bian" class="flex flex-col-reverse gap-8 w-full flex-grow px-4"></div>
+                        <p class="mt-8 text-[11px] font-black text-cyan-800 uppercase tracking-widest opacity-60">Transformed</p>
                     </div>
                 </div>
             </section>
 
-            <section class="lg:col-span-8 flex flex-col gap-6 text-justify">
+            <!-- 右侧区域 -->
+            <section class="lg:col-span-8 flex flex-col gap-6">
                 <div class="flex-grow glass rounded-[3.5rem] flex flex-col overflow-hidden shadow-2xl relative border border-yellow-900/10 min-h-[600px] bg-black/10">
                     <div class="px-10 py-6 border-b border-yellow-900/10 flex justify-between items-center bg-black/40">
                         <div class="flex items-center gap-3">
                             <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_#22c55e]"></span>
-                            <span class="text-xs font-black tracking-[0.4em] text-yellow-900 uppercase font-mono tracking-widest leading-none">Digital Oracle Terminal</span>
+                            <span class="text-xs font-black tracking-[0.4em] text-yellow-900 uppercase">Divine Insight Console</span>
                         </div>
                         <div class="flex gap-8">
-                            <button onclick="App.copyAnalysis()" class="text-[11px] text-zinc-400 hover:text-yellow-600 font-black uppercase transition-all tracking-widest leading-none">复制报告</button>
-                            <button onclick="App.reset()" class="text-[11px] text-red-900/80 hover:text-red-500 font-black uppercase transition-all tracking-widest leading-none">重置系统</button>
+                            <button onclick="App.copyAnalysis()" class="text-[11px] text-zinc-400 hover:text-yellow-600 font-black uppercase transition-all tracking-widest">复制报告</button>
+                            <button onclick="App.reset()" class="text-[11px] text-red-900 hover:text-red-500 font-black uppercase transition-all tracking-widest">重置系统</button>
                         </div>
                     </div>
-                    <div id="output-console" class="p-12 flex-grow overflow-y-auto terminal-scroll text-justify">
-                        <div class="mt-48 text-center italic opacity-10 tracking-[1.2em] text-yellow-900 font-black uppercase font-serif">--- 乾坤重置 · 时空同步 ---</div>
+                    <div id="output-console" class="p-12 flex-grow overflow-y-auto terminal-scroll">
+                        <div class="mt-48 text-center italic opacity-10 tracking-[1.2em] text-yellow-900 font-black uppercase">--- 乾坤重置 · 时空同步 ---</div>
                     </div>
                     <div id="action-footer" class="hidden p-10 border-t border-yellow-900/10 bg-black/60 shadow-2xl">
                         <button id="ai-btn" onclick="App.consultAI()" class="w-full py-7 premium-btn text-white font-black rounded-[2.5rem] hover:brightness-125 transition-all active:scale-[0.98] flex items-center justify-center gap-8 group shadow-2xl">
-                            <span class="text-cyan-400 font-bold group-hover:animate-ping text-3xl leading-none">✧</span> 
-                            <span id="ai-btn-text" class="tracking-[0.4em] text-xl uppercase italic font-black text-shadow-glow">执行 AI 深度推演协议</span> 
-                            <span class="text-pink-500 font-bold group-hover:animate-ping text-3xl leading-none">✧</span>
+                            <span class="text-cyan-400 font-bold group-hover:animate-ping text-3xl">✧</span> 
+                            <span id="ai-btn-text" class="tracking-[0.4em] text-xl uppercase italic font-black">执行 AI 深度推演协议</span> 
+                            <span class="text-pink-500 font-bold group-hover:animate-ping text-3xl">✧</span>
                         </button>
                     </div>
                 </div>
+                <div class="glass p-5 rounded-2xl"><div id="history-list" class="flex gap-4 overflow-x-auto pb-2 terminal-scroll px-2"></div></div>
             </section>
         </main>
     </div>
 
-    <!-- 激活弹窗 -->
-    <div id="settings-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-6 bg-black/98 backdrop-blur-3xl">
-        <div class="max-w-md w-full border border-yellow-900/30 bg-[#0a0a0a] p-10 rounded-[4rem] shadow-2xl text-xs overflow-y-auto max-h-[90vh]">
-            <h3 class="text-3xl font-black mb-10 text-yellow-600 border-b border-yellow-900/20 pb-8 tracking-widest italic text-center uppercase">Cloud Identity</h3>
-            <div class="space-y-6 text-center">
-                <div class="p-10 bg-gradient-to-br from-yellow-950/40 to-cyan-950/40 rounded-[3.5rem] border border-yellow-900/20 shadow-inner">
-                    <label class="text-yellow-500 uppercase mb-8 block font-black tracking-[0.5em] text-sm leading-none">钻石会员激活码</label>
-                    <input type="text" id="access-code-input" placeholder="输入16位加密卡密" class="w-full bg-black border border-cyan-900/30 p-5 rounded-2xl text-cyan-400 outline-none text-center text-lg font-mono mb-4 shadow-2xl tracking-widest uppercase">
+    <!-- 设置弹窗：纯净商业入口 -->
+    <div id="settings-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-6 bg-black/95 backdrop-blur-3xl">
+        <div class="max-w-md w-full border border-yellow-900/30 bg-[#0a0a0a] p-10 rounded-[3.5rem] shadow-2xl text-xs overflow-y-auto max-h-[90vh] terminal-scroll">
+            <h3 class="text-3xl font-black mb-10 text-yellow-600 border-b border-yellow-900/20 pb-8 tracking-widest italic text-center uppercase">Kernel Control</h3>
+            
+            <div class="space-y-10">
+                <div class="p-8 bg-gradient-to-br from-yellow-950/40 to-cyan-950/40 rounded-[3rem] border border-yellow-900/20 shadow-inner text-center">
+                    <label class="text-yellow-500 uppercase mb-8 block font-black tracking-[0.5em] text-sm">请输入专属钻石激活码</label>
+                    <input type="text" id="access-code-input" placeholder="输入卡密" class="w-full bg-black border border-cyan-900/30 p-6 rounded-2xl text-cyan-400 outline-none text-center text-3xl font-mono mb-10 shadow-2xl tracking-widest uppercase">
                     
-                    <div id="auth-status-bar" class="text-[10px] font-black uppercase tracking-widest bg-red-950/20 rounded-lg">SYSTEM READY</div>
-
-                    <div class="mb-8">
-                        <a href="https://shop.yunyfk.com/item/7xxbwn" target="_blank" class="block w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-2xl transition-all shadow-xl uppercase tracking-widest text-xs italic">🛒 24H 自动购买卡密 (15天)</a>
+                    <!-- 扫码付款入口：提示用户联系获取 -->
+                    <div class="grid grid-cols-2 gap-6 mb-10 text-center px-4">
+                        <div class="space-y-3">
+                            <div class="qr-placeholder italic border-2 border-dashed border-zinc-700">扫码付款<br>自动发货</div>
+                            <p class="text-[11px] text-zinc-400 font-black uppercase tracking-widest">微信支付</p>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="qr-placeholder italic border-2 border-dashed border-zinc-700">扫码付款<br>自动发货</div>
+                            <p class="text-[11px] text-zinc-400 font-black uppercase tracking-widest">支付宝</p>
+                        </div>
                     </div>
+
                     <div class="text-[13px] text-yellow-600 leading-relaxed font-black border-t border-yellow-900/20 pt-8">
-                        <p class="mb-2 uppercase opacity-60 tracking-widest text-zinc-400 leading-none">技术支持 / 手动充值</p>
-                        <p class="text-yellow-500 text-lg select-all font-mono mt-1 leading-none">WeChat: timecoefficient</p>
-                        <p class="text-yellow-400 font-bold text-[12px] mt-4 italic opacity-95 leading-relaxed">激活码一旦开启，将绑定<b class="underline font-black">本设备</b> 15 天权限</p>
+                        <p class="mb-2 uppercase opacity-60">获取卡密 / 技术支持</p>
+                        <p class="text-yellow-500 text-lg select-all font-mono">WeChat: timecoefficient</p>
+                        <p class="opacity-40 italic font-normal text-[11px] mt-2 underline">激活解锁无限次推演与 Thinking 深度逻辑</p>
                     </div>
                 </div>
             </div>
+
             <div class="flex gap-4 mt-12">
-                <button onclick="App.saveActivation()" class="flex-grow py-5 bg-yellow-600 text-black font-black rounded-2xl active:scale-95 shadow-2xl hover:brightness-110 uppercase tracking-widest text-sm italic">验证并开启权限</button>
-                <button onclick="App.toggleSettings()" class="px-10 py-5 border border-yellow-900/20 rounded-2xl text-zinc-400 hover:text-white transition-all font-black uppercase tracking-widest text-[10px]">返回</button>
+                <button onclick="App.saveSettings()" class="flex-grow py-5 bg-yellow-600 text-black font-black rounded-2xl active:scale-95 shadow-2xl hover:brightness-110 uppercase tracking-widest text-sm">确认并保存</button>
+                <button onclick="App.toggleSettings()" class="px-10 py-5 border border-yellow-900/20 rounded-2xl text-zinc-400 hover:text-white transition-all font-black uppercase tracking-widest text-[10px]">返回终端</button>
             </div>
         </div>
     </div>
 
     <script>
+        const GUA_DICT = {
+            "111111": { name: "乾为天", desc: "元亨利贞，刚健自强" }, "000000": { name: "坤为地", desc: "厚德载物，柔顺包容" },
+            "111000": { name: "地天泰", desc: "通达祥瑞，阴阳交泰" }, "000111": { name: "天地否", desc: "闭塞不通，上下不交" },
+            "010001": { name: "水雷屯", desc: "萌发生长，宜守勿躁" }, "101010": { name: "离为火", desc: "附丽光明，文明之兆" },
+            "010101": { name: "坎为水", desc: "重重险陷，信守诚道" }, "100010": { name: "山水蒙", desc: "童蒙启智，寻师求真" },
+            "111010": { name: "水天需", desc: "守诚待机，饮食欢畅" }, "010111": { name: "天水讼", desc: "止争求和，不可长久" },
+            "000010": { name: "地水师", desc: "劳师动众，律法为先" }, "010000": { name: "水地比", desc: "亲辅相依，诚信获吉" },
+            "110111": { name: "风天小畜", desc: "密云不雨，积蓄力量" }, "111011": { name: "天泽履", desc: "履险而顺，谨言慎行" }
+        };
+
         const App = {
             config: {
-                apiKeys: ["sk-I4HEv6a0W2Rfbxb2l5ZCyLMUFRmo1qmszFbJy89ScxFwexDA"],
+                apiKey: "sk-I4HEv6a0W2Rfbxb2l5ZCyLMUFRmo1qmszFbJy89ScxFwexDA",
                 baseUrl: "https://once.novai.su/v1",
                 model: "gemini-3-pro-preview-thinking",
-                salt: "ORACLE_V10_PRO" // 保证主站与生成器统一
+                accessCode: localStorage.getItem('div_code_v5') || "",
+                isPremium: false
             },
-            state: { guaData: [], isConsulting: false, isPremium: false, usageToday: 0, hubData: {} },
-
-            init() { this.checkLocalStatus(); this.updateUI(); this.startMarketHub(); this.updateGanzhi(); },
-
-            showStatus(msg, isError=true) {
-                const el = document.getElementById('auth-status-bar');
-                el.innerText = msg; el.classList.add('show'); el.style.color = isError ? '#ef4444' : '#22c55e';
+            state: { 
+                currentStep: 0, guaData: [], isCasting: false, isConsulting: false, 
+                divinationTime: null, hubData: { btc: null, eth: null }, usageToday: 0,
+                inputTimer: null
             },
 
-            // --- v10.0 终极鉴权逻辑：强制完整校验 ---
-            saveActivation() {
-                const rawCode = document.getElementById('access-code-input').value.trim().toUpperCase();
-                if (!rawCode) return;
-                
-                try {
-                    // 核心分段校验
-                    const parts = rawCode.split('-');
-                    if (parts.length < 2) {
-                        this.showStatus("错误：你是否漏复制了横杠后面的代码？");
-                        return;
-                    }
-                    
-                    const body = parts[0]; // 包含拼音和9进制日期的主体
-                    const signature = parts[1]; // 4位签名
-
-                    // 1. 验证签名（防伪）
-                    const calcSig = this.generateHash(body + this.config.salt);
-                    if (signature !== calcSig) {
-                        this.showStatus("校验失败：卡密指纹不匹配 (请完整复制)");
-                        return;
-                    }
-
-                    // 2. 提取日期（抠出所有数字）
-                    const digits = body.replace(/\D/g, ''); // 得到 42108718
-                    if (digits.length < 8) { this.showStatus("码面损坏：无法解析时间戳"); return; }
-
-                    // 3. 9进制 -> 10进制 -> 校验15天
-                    const dateInt = parseInt(digits, 9);
-                    const ds = dateInt.toString();
-                    const codeDate = new Date(`${ds.slice(0,4)}-${ds.slice(4,6)}-${ds.slice(6,8)}`);
-                    
-                    const diffDays = Math.floor((new Date() - codeDate) / 86400000);
-
-                    if (diffDays >= 0 && diffDays <= 15) {
-                        localStorage.setItem('div_v10_exp', codeDate.getTime() + (15 * 86400000));
-                        this.state.isPremium = true;
-                        this.showStatus("激活成功！15天权限开启", false);
-                        setTimeout(() => { this.updateUI(); this.toggleSettings(); }, 1500);
-                    } else { this.showStatus("该卡密已过期 (超过15天有效期)"); }
-                } catch(e) { this.showStatus("解析异常：激活码版本不符"); }
-            },
-
-            generateHash(str) {
-                // DJB2 Hash
-                let h = 5381;
-                for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
-                return (h >>> 0).toString(16).toUpperCase().slice(-4).padStart(4, '0');
-            },
-
-            checkLocalStatus() {
-                const exp = localStorage.getItem('div_v10_exp');
-                if (exp && Date.now() < parseInt(exp)) this.state.isPremium = true;
+            init() {
+                this.validatePremium(); this.checkUsage(); this.updateUI();
+                this.startMarketHub(); this.loadHistory(); this.updateGanzhi();
             },
 
             updateGanzhi() {
-                const d = new Date();
-                document.getElementById('hub-time').innerText = d.toLocaleTimeString();
+                const date = new Date();
+                const tiangan = "甲乙丙丁戊己庚辛壬癸";
+                const dizhi = "子丑寅卯辰巳午未申酉戌亥";
+                const ganzhi = `${tiangan[date.getFullYear()%10]}${dizhi[date.getFullYear()%12]}年 ${tiangan[(date.getMonth()+1)%10]}${dizhi[(date.getMonth()+1)%12]}月`;
+                if(document.getElementById('hub-ganzhi')) document.getElementById('hub-ganzhi').innerText = ganzhi;
+                if(document.getElementById('hub-time')) document.getElementById('hub-time').innerText = date.toLocaleTimeString();
                 setTimeout(() => this.updateGanzhi(), 1000);
+            },
+
+            validatePremium() {
+                // 仅保留核心验证，不给提示码
+                this.config.isPremium = (this.config.accessCode === "VIP666" || this.config.accessCode.startsWith("PRM-"));
+            },
+
+            checkUsage() {
+                const today = new Date().toDateString();
+                if (localStorage.getItem('last_use_date') !== today) {
+                    localStorage.setItem('usage_count', '0');
+                    localStorage.setItem('last_use_date', today);
+                }
+                this.state.usageToday = parseInt(localStorage.getItem('usage_count') || '0');
             },
 
             async startMarketHub() {
                 const fetchPrices = async () => {
                     try {
-                        const [b, e] = await Promise.all([fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT'), fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT')]);
-                        this.state.hubData = { btc: await b.json(), eth: await e.json() };
-                        let sym = document.getElementById('target-input').value.trim().toUpperCase();
-                        const bEl = document.getElementById('input-price-badge');
-                        if (sym && bEl) {
-                            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${sym}USDT`);
+                        const [btcRes, ethRes] = await Promise.all([
+                            fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT'),
+                            fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT')
+                        ]);
+                        const oldBtc = this.state.hubData.btc?.lastPrice;
+                        this.state.hubData.btc = await btcRes.json();
+                        this.state.hubData.eth = await ethRes.json();
+                        
+                        if (this.state.hubData.btc.lastPrice !== oldBtc) {
+                            const hb = document.getElementById('hub-btc');
+                            const he = document.getElementById('hub-eth');
+                            if(hb) hb.classList.add('price-update-flash');
+                            if(he) he.classList.add('price-update-flash');
+                            setTimeout(() => {
+                                if(hb) hb.classList.remove('price-update-flash');
+                                if(he) he.classList.remove('price-update-flash');
+                            }, 800);
+                        }
+
+                        // 实时价格水平同步
+                        let symbol = document.getElementById('target-input').value.trim().toUpperCase();
+                        const badge = document.getElementById('input-price-badge');
+                        if (symbol && badge) {
+                            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`);
                             if (res.ok) {
-                                const dj = await res.json();
-                                bEl.innerText = `$${parseFloat(dj.lastPrice).toLocaleString()}`;
+                                const data = await res.json();
+                                badge.innerText = `$${parseFloat(data.lastPrice).toLocaleString()}`;
                             }
                         }
                         this.updateUI();
@@ -256,53 +293,197 @@
             },
 
             async cast() {
-                if (this.state.guaData.length >= 6) return;
-                const resArr = [1, 2, 3].map(() => Math.random() > 0.5 ? 3 : 2);
-                const sum = resArr.reduce((a, b) => a + b, 0);
-                this.state.guaData.push({ sum, type: (sum === 7 || sum === 9) ? 'yang' : 'yin', isMoving: (sum === 6 || sum === 9) });
-                this.updateUI();
-                [1,2,3].forEach((id, i) => document.getElementById(`coin-${id}`).innerText = resArr[i] === 3 ? "阳" : "阴");
+                if (this.state.currentStep >= 6 || this.state.isCasting) return;
+                if (this.state.currentStep === 0) this.state.divinationTime = new Date().toLocaleString();
+                this.state.isCasting = true; this.updateUI();
+                [1,2,3].forEach(id => {
+                    const el = document.getElementById(`coin-${id}`);
+                    if(el) { el.classList.add('coin-spin'); el.innerText = "..."; }
+                });
+                setTimeout(() => {
+                    const resArr = [1, 2, 3].map(() => Math.random() > 0.5 ? 3 : 2);
+                    const sum = resArr.reduce((a, b) => a + b, 0);
+                    this.state.guaData.push({ sum, type: (sum === 7 || sum === 9) ? 'yang' : 'yin', isMoving: (sum === 6 || sum === 9) });
+                    this.state.currentStep++; this.state.isCasting = false;
+                    [1,2,3].forEach((id,i) => {
+                        const el = document.getElementById(`coin-${id}`);
+                        if(el) { el.classList.remove('coin-spin'); el.innerText = resArr[i] === 3 ? "阳" : "阴"; el.style.color = resArr[i] === 3 ? "var(--gold)" : "#444"; }
+                    });
+                    this.updateUI();
+                }, 600);
             },
 
             async consultAI() {
-                if (!this.state.isPremium && this.state.usageToday >= 1) return;
+                if (!this.config.isPremium && this.state.usageToday >= 1) {
+                    this.logToConsole(`<div class="p-10 text-center glass border border-red-900/30 rounded-[3rem]">
+                        <h4 class="text-red-500 font-black text-2xl mb-4 uppercase">Free Tier Limit</h4>
+                        <p class="text-zinc-400 text-sm mb-10 leading-relaxed italic">当前版本每日仅限 1 次深度推演仪式。<br>请输入钻石激活码，解锁每分钟无限次推演特权。</p>
+                        <button onclick="App.toggleSettings()" class="text-cyan-400 font-black underline tracking-[0.2em] text-xs uppercase hover:text-cyan-200">去获取钻石激活码</button>
+                    </div>`, true);
+                    return;
+                }
+
                 this.state.isConsulting = true;
-                document.getElementById('ai-btn-text').innerText = "神思入定，同步星轨...";
-                document.getElementById('ai-btn').classList.add('meditating');
+                const btnText = document.getElementById('ai-btn-text');
+                const btn = document.getElementById('ai-btn');
+                if(btnText) btnText.innerText = "神思入定，同步星轨...";
+                if(btn) btn.classList.add('meditating');
+                this.updateUI();
+
+                const target = document.getElementById('target-input').value || "大盘走势";
+                const benCode = this.state.guaData.map(l => l.type === 'yang' ? '1' : '0').join('');
+                const bianCode = this.state.guaData.map(l => l.isMoving ? (l.type === 'yang' ? '0' : '1') : (l.type === 'yang' ? '1' : '0')).join('');
+
+                const prompt = `你是一位精通周易六爻、行为金融学与量化策略的大师。
+                【当前北京时间】：${this.state.divinationTime}
+                【预测标的】：${target}
+                【本卦象】：${benCode} (${GUA_DICT[benCode]?.name || '未知'})
+                【变卦象】：${bianCode} (${GUA_DICT[bianCode]?.name || '未知'})
+                要求：1.深度解析本变转化之因果逻辑 2.预测精确变盘应期 3.明确操作策略建议。
+                注意：开头必须用【摘要：内容】。严格使用 Markdown 渲染。严禁输出原始 Markdown 符号。字体：皇家黄。`;
+
                 try {
                     const res = await fetch(`${this.config.baseUrl}/chat/completions`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.config.apiKeys[0]}` },
-                        body: JSON.stringify({ model: this.config.model, messages: [{ role: "user", content: "六爻解卦。要求皇家黄视觉，严禁出现符号。" }] })
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.config.apiKey}` },
+                        body: JSON.stringify({ model: this.config.model, messages: [{ role: "user", content: prompt }] })
                     });
                     const data = await res.json();
-                    document.getElementById('output-console').innerHTML = `<div class="analysis-content">${marked.parse(data.choices[0].message.content.replace(/[#*_-]/g, ''))}</div>`;
-                    if (!this.state.isPremium) { this.state.usageToday++; localStorage.setItem('u_cnt_v10', this.state.usageToday); }
-                } catch (e) {} finally {
+                    const result = data.choices[0].message.content;
+                    this.logToConsole(`<div class="analysis-content">${marked.parse(result)}</div>`, true);
+                    const summaryMatch = result.match(/【摘要：(.*?)】/);
+                    if (summaryMatch) document.getElementById('hub-timing-text').innerText = summaryMatch[1];
+                    if (!this.config.isPremium) { this.state.usageToday++; localStorage.setItem('usage_count', this.state.usageToday.toString()); }
+                    this.saveToHistory(target, result);
+                } catch (err) {
+                    this.logToConsole(`<div class="text-red-500 font-bold p-6">推演阻断: ${err.message}</div>`, true);
+                } finally {
                     this.state.isConsulting = false;
-                    document.getElementById('ai-btn-text').innerText = "执行 AI 深度推演协议";
-                    document.getElementById('ai-btn').classList.remove('meditating');
+                    if(btnText) btnText.innerText = "执行 AI 深度推演协议";
+                    if(btn) btn.classList.remove('meditating');
+                    this.updateUI();
                 }
             },
 
             updateUI() {
+                const { btc, eth } = this.state.hubData;
+                const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+                
+                if (btc) {
+                    setEl('hub-btc-price', `$${parseFloat(btc.lastPrice).toLocaleString()}`);
+                    const chg = document.getElementById('hub-btc-change');
+                    if (chg) {
+                        chg.innerText = `${parseFloat(btc.priceChangePercent)>=0?'▲':'▼'} ${btc.priceChangePercent}%`;
+                        chg.className = `text-xs font-black ${parseFloat(btc.priceChangePercent)>=0?'text-green-500':'text-red-500'}`;
+                    }
+                }
+                if (eth) {
+                    setEl('hub-eth-price', `$${parseFloat(eth.lastPrice).toLocaleString()}`);
+                    const chg = document.getElementById('hub-eth-change');
+                    if (chg) {
+                        chg.innerText = `${parseFloat(eth.priceChangePercent)>=0?'▲':'▼'} ${eth.priceChangePercent}%`;
+                        chg.className = `text-xs font-black ${parseFloat(eth.priceChangePercent)>=0?'text-green-500':'text-red-500'}`;
+                    }
+                }
+
+                // 卦象渲染：严格水平对齐
+                const benCode = this.state.guaData.map(l => l.type === 'yang' ? '1' : '0').join('');
+                const benGua = GUA_DICT[benCode];
+                const bGuaEl = document.getElementById('gua-preview-ben');
+                const bGuaName = document.getElementById('gua-name-ben');
+                
+                if (bGuaEl) {
+                    bGuaEl.innerHTML = this.state.guaData.map(l => `
+                        <div class="flex items-center gap-3"><div class="gua-line ${l.type==='yang'?'yang-line':'yin-line'} flex-grow shadow-lg"></div>
+                        <div class="w-6 text-[12px] font-black text-orange-600">${l.isMoving?(l.type==='yang'?'○':'×'):''}</div></div>`).join('');
+                }
+                if (bGuaName) {
+                    bGuaName.innerHTML = benGua ? `<span class="text-lg">${benGua.name}</span><span class="text-[10px] text-yellow-900/60 font-black mt-1 uppercase tracking-widest">${benGua.desc}</span>` : (this.state.currentStep===6 ? "排盘成功" : "本卦待起");
+                }
+
+                const biGuaEl = document.getElementById('gua-preview-bian');
+                const biGuaName = document.getElementById('gua-name-bian');
+                if (this.state.currentStep === 6) {
+                    const bianData = this.state.guaData.map(l => l.isMoving ? { type: (l.type === 'yang' ? 'yin' : 'yang') } : { type: l.type });
+                    const bianCode = bianData.map(l => l.type === 'yang' ? '1' : '0').join('');
+                    const bianGua = GUA_DICT[bianCode];
+                    if(biGuaEl) {
+                        biGuaEl.innerHTML = bianData.map(l => `<div class="flex items-center gap-3 px-2"><div class="gua-line ${l.type==='yang'?'yang-line':'yin-line'} flex-grow shadow-2xl"></div><div class="w-4"></div></div>`).join('');
+                    }
+                    if(biGuaName) biGuaName.innerHTML = bianGua ? `<span class="text-lg">${bianGua.name}</span><span class="text-[10px] text-cyan-900/60 font-black mt-1 uppercase tracking-widest">${bianGua.desc}</span>` : "变卦(无动爻)";
+                }
+
+                document.getElementById('action-footer').classList.toggle('hidden', this.state.currentStep < 6);
                 const sl = document.getElementById('status-label');
                 if (sl) {
-                    sl.innerText = this.state.isPremium ? "DIAMOND" : "FREE";
-                    sl.className = `text-[9px] font-black px-2 py-0.5 rounded uppercase ${this.state.isPremium ? 'text-cyan-400 bg-cyan-950/60 shadow-lg' : 'text-yellow-500 bg-yellow-900/30'}`;
+                    sl.innerText = this.config.isPremium ? "DIAMOND ACCESS" : "免费运营版";
+                    sl.className = `text-[9px] font-black px-2 py-0.5 rounded uppercase ${this.config.isPremium ? 'text-cyan-400 bg-cyan-950/60' : 'text-yellow-500 bg-yellow-900/30'}`;
                 }
-                const uc = document.getElementById('usage-count');
-                if(uc) uc.innerText = this.state.isPremium ? "INFINITY" : `Left: ${1 - this.state.usageToday}`;
-                document.getElementById('gua-preview-ben').innerHTML = this.state.guaData.map(l => `<div class="flex items-center gap-3"><div class="gua-line ${l.type==='yang'?'yang-line':'yin-line'} flex-grow shadow-lg"></div><div class="w-6 text-[12px] font-black text-orange-600">${l.isMoving?(l.type==='yang'?'○':'×'):''}</div></div>`).join('');
-                if (this.state.guaData.length === 6) {
-                    const bianData = this.state.guaData.map(l => l.isMoving ? { type: (l.type === 'yang' ? 'yin' : 'yang') } : { type: l.type });
-                    document.getElementById('gua-preview-bian').innerHTML = bianData.map(l => `<div class="flex items-center gap-3 px-2"><div class="gua-line ${l.type==='yang'?'yang-line':'yin-line'} flex-grow shadow-2xl shadow-cyan-950/20"></div><div class="w-4"></div></div>`).join('');
+                setEl('usage-count', this.config.isPremium ? "INFINITY" : `LEFT: ${1 - this.state.usageToday}`);
+                
+                const cb = document.getElementById('cast-btn');
+                if (cb) {
+                    cb.disabled = (this.state.currentStep >= 6 || this.state.isCasting);
+                    cb.innerText = this.state.currentStep >= 6 ? "六爻已定" : "掷 杯 起 卦 (CAST)";
                 }
-                document.getElementById('action-footer')?.classList.toggle('hidden', this.state.guaData.length < 6);
+            },
+
+            onInputChange() {
+                let symbol = document.getElementById('target-input').value.trim();
+                const b = document.getElementById('input-price-badge');
+                if(!symbol && b) b.innerText = "";
+            },
+
+            loadHistory() {
+                const hist = JSON.parse(localStorage.getItem('div_history') || '[]');
+                const hEl = document.getElementById('history-list');
+                if (hEl) {
+                    hEl.innerHTML = hist.map((h, i) => `
+                        <div class="min-w-[150px] glass p-4 rounded-2xl text-[9px] cursor-pointer hover:bg-yellow-950/20 active:scale-[0.97] transition-all border border-yellow-900/10 shadow-inner" onclick="App.recallHistory(${i})">
+                            <p class="font-black text-yellow-600 truncate uppercase tracking-widest">${h.target}</p>
+                            <p class="opacity-30 mt-2 font-mono text-zinc-400 text-[8px]">${h.date}</p>
+                        </div>`).join('');
+                }
+            },
+            saveToHistory(target, content) {
+                let hist = JSON.parse(localStorage.getItem('div_history') || '[]');
+                hist.unshift({ target, content, date: new Date().toLocaleDateString() });
+                hist = hist.slice(0, 5); localStorage.setItem('div_history', JSON.stringify(hist));
+                this.loadHistory();
+            },
+            recallHistory(index) {
+                const hist = JSON.parse(localStorage.getItem('div_history') || '[]');
+                this.logToConsole(`<div class="analysis-content">${marked.parse(hist[index].content)}</div>`, true);
+            },
+            logToConsole(html, replace = false) {
+                const con = document.getElementById('output-console');
+                if (!con) return;
+                if (replace) con.innerHTML = html; else { const d = document.createElement('div'); d.innerHTML = html; con.appendChild(d); }
+                con.scrollTop = 0;
+            },
+            reset() { 
+                this.state = { ...this.state, currentStep: 0, guaData: [], isCasting: false, isConsulting: false, divinationTime: null }; 
+                this.updateUI();
+                document.getElementById('hub-timing-text').innerText = "待天机同步...";
+                document.getElementById('gua-preview-bian').innerHTML = ''; document.getElementById('gua-name-bian').innerText = '变卦待定';
+                document.getElementById('gua-name-ben').innerText = '本卦待起';
+                const b = document.getElementById('input-price-badge'); if(b) b.innerText = '';
+                document.getElementById('target-input').value = "";
+                [1,2,3].forEach(id => { const el = document.getElementById(`coin-${id}`); if(el) el.innerText = "?"; el.style.color = "var(--gold)"; });
+                this.logToConsole("<div class='mt-48 text-center italic opacity-10 tracking-[1.2em] text-yellow-900 font-black uppercase'>--- 乾坤重置 · 万象更新 ---</div>", true);
             },
             toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); },
-            reset() { location.reload(); },
-            onInputChange() { let s = document.getElementById('target-input').value; if(!s) document.getElementById('input-price-badge').innerText = ""; },
-            copyAnalysis() { const t = document.getElementById('output-console').innerText; const e = document.createElement('textarea'); e.value = t; document.body.appendChild(e); e.select(); document.execCommand('copy'); document.body.removeChild(e); }
+            saveSettings() {
+                const aci = document.getElementById('access-code-input');
+                if (aci) this.config.accessCode = aci.value.trim();
+                localStorage.setItem('div_code_v5', this.config.accessCode);
+                this.validatePremium(); this.updateUI(); this.toggleSettings();
+            },
+            copyAnalysis() {
+                const con = document.getElementById('output-console').innerText;
+                const el = document.createElement('textarea'); el.value = con; document.body.appendChild(el); el.select();
+                document.execCommand('copy'); document.body.removeChild(el);
+            }
         };
         window.onload = () => App.init();
     </script>
