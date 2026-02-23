@@ -3,299 +3,483 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEMINI 六爻股市预测系统</title>
+    <title>GEMINI 赛博通灵系统 v5.7 (终极运营版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+KuaiLe&display=swap');
+        :root { --gold: #d4af37; --gold-bright: #f9e29a; --royal-yellow: #E6B422; --dark-bg: #030303; }
         body {
-            background-color: #0a0a0a;
-            color: #d4af37;
+            background-color: var(--dark-bg);
+            color: var(--gold);
             font-family: 'Noto Serif SC', serif;
-            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 100%);
+            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
+        /* 卦线：增加高度和立体感，解决“太扁”问题 */
+        .gua-line { height: 12px; transition: all 0.5s ease; border-radius: 999px; }
+        .yang-line { background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 50%, var(--gold) 100%); width: 100%; box-shadow: 0 4px 10px rgba(212,175,55,0.3); }
+        .yin-line { display: flex; justify-content: space-between; width: 100%; }
+        .yin-line::before, .yin-line::after { content: ''; height: 100%; width: 44%; background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 50%, var(--gold) 100%); border-radius: 999px; box-shadow: 0 4px 10px rgba(212,175,55,0.2); }
+        
+        /* 顶部看板呼吸灯 */
+        .price-update-flash { animation: hub-glow 0.8s ease-out; }
+        @keyframes hub-glow { 0% { border-color: var(--gold-bright); box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); } 100% { border-color: rgba(212, 175, 55, 0.1); } }
 
-        .gua-line {
-            height: 12px;
-            transition: all 0.3s ease;
+        /* 皇家黄分析报告渲染样式 */
+        .analysis-content { color: var(--royal-yellow); line-height: 2.2; font-size: 1.05rem; }
+        .analysis-content h1, .analysis-content h2, .analysis-content h3 { 
+            color: var(--gold-bright); 
+            font-weight: 900; 
+            margin: 1.5rem 0 1rem 0; 
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            display: block;
         }
+        .analysis-content strong { color: #FFD700; font-weight: 900; }
+        .analysis-content p { margin-bottom: 1.5rem; }
 
-        .yang-line {
-            background: linear-gradient(90deg, #d4af37 0%, #f9e29a 50%, #d4af37 100%);
-            width: 100%;
-        }
+        .coin-icon { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; background: #111; font-weight: 900; }
+        .coin-spin { animation: coin-flip 0.6s ease-in-out infinite; }
+        @keyframes coin-flip { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
 
-        .yin-line {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            background: transparent;
-        }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.1); }
+        .premium-btn { border: 1px solid transparent; background: linear-gradient(var(--dark-bg), var(--dark-bg)) padding-box, linear-gradient(45deg, #d4af37, #00f3ff, #ff00de) border-box; }
+        
+        .meditating { animation: pulse-med 2s infinite ease-in-out; pointer-events: none; }
+        @keyframes pulse-med { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.98); } }
 
-        .yin-line::before, .yin-line::after {
-            content: '';
-            height: 100%;
-            width: 45%;
-            background: linear-gradient(90deg, #d4af37 0%, #f9e29a 50%, #d4af37 100%);
-        }
-
-        .moving-mark {
-            color: #ff4500;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-
-        .coin {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid #d4af37;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1a1a1a;
-            font-weight: bold;
-        }
-
-        .cyber-border {
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
-        }
-
-        @keyframes spinning {
-            0% { transform: rotateY(0deg); }
-            100% { transform: rotateY(1800deg); }
-        }
-
-        .coin-spin {
-            animation: spinning 0.6s ease-out;
-        }
-
-        #settings-modal {
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-        }
+        .terminal-scroll::-webkit-scrollbar { width: 3px; }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: #E6B42233; }
     </style>
 </head>
-<body class="min-h-screen p-4">
+<body class="p-2 md:p-6">
 
-    <div class="max-w-4xl mx-auto">
-        <!-- Navigation/Header -->
-        <div class="flex justify-between items-start mb-4">
-            <button onclick="toggleSettings()" class="p-2 text-yellow-800 hover:text-yellow-500 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            </button>
-            <div class="text-right">
-                <p id="key-status" class="text-[10px] uppercase tracking-widest text-red-800">API Key 未配置</p>
+    <div class="max-w-7xl mx-auto">
+        <!-- 顶部看板 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div id="hub-btc" class="glass p-4 rounded-2xl flex justify-between items-center transition-all">
+                <div><p class="text-[9px] text-gray-500 uppercase font-black">Bitcoin</p><h3 class="text-lg font-black font-mono text-yellow-500" id="hub-btc-price">同步中...</h3></div>
+                <div id="hub-btc-change" class="text-xs font-bold">--%</div>
+            </div>
+            <div id="hub-eth" class="glass p-4 rounded-2xl flex justify-between items-center transition-all">
+                <div><p class="text-[9px] text-gray-500 uppercase font-black">Ethereum</p><h3 class="text-lg font-black font-mono text-gray-300" id="hub-eth-price">同步中...</h3></div>
+                <div id="hub-eth-change" class="text-xs font-bold">--%</div>
+            </div>
+            <div class="glass p-4 rounded-2xl flex flex-col justify-center border-l-4 border-yellow-600 bg-yellow-950/5">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[9px] font-black text-cyan-600 uppercase" id="hub-ganzhi">CALCULATING...</span>
+                    <span id="status-label" class="text-[8px] bg-yellow-900/40 px-1.5 py-0.5 rounded text-yellow-500 font-bold">免费用户</span>
+                </div>
+                <div class="flex justify-between items-end">
+                    <div id="hub-time" class="text-[10px] text-cyan-100 italic font-mono">00:00:00</div>
+                    <div id="usage-count" class="text-[9px] text-yellow-800 font-black tracking-widest uppercase">LEFT: 1</div>
+                </div>
+            </div>
+            <div class="bg-cyan-950/20 border border-cyan-800/30 p-4 rounded-2xl flex flex-col justify-center">
+                <p class="text-[9px] text-cyan-500 font-bold uppercase mb-1">应期摘要 (SUMMARY)</p>
+                <div id="hub-timing-text" class="text-[10px] text-cyan-100 truncate italic">待天机同步...</div>
             </div>
         </div>
 
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-black tracking-widest mb-2">六爻股市预测系统</h1>
-            <p class="text-yellow-600 text-sm uppercase tracking-widest">Financial Divination Terminal</p>
-        </header>
+        <!-- 巨幕设置按钮 -->
+        <div class="mb-8 px-2">
+            <button onclick="App.toggleSettings()" class="w-full premium-btn py-3 rounded-xl flex items-center justify-center gap-4 group hover:brightness-125 transition-all shadow-xl">
+                <svg class="w-5 h-5 text-yellow-500 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+                <span class="text-xs font-black tracking-[0.3em] text-yellow-600 uppercase group-hover:text-yellow-400">系统内核配置 / 激活 PREMIUM 权限</span>
+                <span class="text-[8px] bg-yellow-900/40 text-yellow-500 px-2 py-0.5 rounded font-mono">v5.7 STABLE</span>
+            </button>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Left: Casting -->
-            <div class="cyber-border bg-black/40 p-6 rounded-lg">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold">起卦 (Cast)</h2>
-                    <span id="step-count" class="text-xs bg-yellow-900/30 px-3 py-1 rounded">第 0/6 爻</span>
-                </div>
-
-                <div class="mb-6">
-                    <input type="text" id="stock-name" placeholder="输入预测目标 (如: NVDA)" class="w-full bg-black border border-yellow-900/50 p-3 text-yellow-500 focus:outline-none focus:border-yellow-500 rounded">
-                </div>
-
-                <div class="flex justify-around mb-8 py-6 bg-gray-900/20 rounded-xl">
-                    <div id="coin-1" class="coin">?</div>
-                    <div id="coin-2" class="coin">?</div>
-                    <div id="coin-3" class="coin">?</div>
-                </div>
-
-                <button id="btn-toss" onclick="tossCoins()" class="w-full py-4 bg-yellow-600 text-black font-black rounded-lg hover:bg-yellow-500 transition-all active:scale-95">
-                    摇卦 (CAST)
-                </button>
-                
-                <div id="gua-display" class="mt-8 space-y-3 flex flex-col-reverse min-h-[150px]">
-                    <!-- Gua lines -->
-                </div>
-            </div>
-
-            <!-- Right: Result -->
-            <div class="flex flex-col gap-6">
-                <div class="cyber-border bg-black/40 p-6 rounded-lg flex-grow">
-                    <h2 class="text-xl font-bold mb-4">卦象解析</h2>
-                    <div id="analysis-content" class="text-gray-400 text-sm space-y-4">
-                        <p class="italic">待六爻起毕...</p>
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- 左侧 -->
+            <section class="lg:col-span-4 space-y-6">
+                <div class="glass p-6 rounded-[2.5rem] shadow-2xl relative border-t border-yellow-900/20">
+                    <div class="text-center mb-8">
+                        <h2 class="text-xs font-black tracking-[0.6em] text-yellow-800 uppercase">Divine Casting</h2>
+                        <div class="mt-1 h-px w-20 bg-yellow-900/20 mx-auto"></div>
                     </div>
-                    
-                    <div id="ai-section" class="hidden mt-6 pt-6 border-t border-yellow-900/30">
-                        <button id="btn-ai" onclick="askGemini()" class="w-full py-3 bg-cyan-900/30 text-cyan-400 border border-cyan-500/50 rounded flex items-center justify-center gap-2 hover:bg-cyan-800/40">
-                            Gemini Pro 深度辅助解卦
+
+                    <div class="space-y-6">
+                        <!-- 输入框与实时价格水平平行 -->
+                        <div class="flex items-center gap-4 bg-black/60 border border-yellow-900/20 p-4 rounded-2xl focus-within:border-yellow-600 transition-all shadow-inner">
+                            <input type="text" id="target-input" oninput="App.onInputChange()" placeholder="输入预测标的 (如: BTC)" class="flex-grow bg-transparent text-yellow-500 outline-none text-sm font-bold placeholder:opacity-20 uppercase tracking-widest">
+                            <div id="input-price-badge" class="text-yellow-500 font-black font-mono text-base tracking-tighter whitespace-nowrap"></div>
+                        </div>
+
+                        <div class="flex justify-around py-6 bg-black/40 rounded-3xl border border-yellow-900/5 shadow-inner">
+                            <div id="coin-1" class="coin-icon shadow-lg shadow-yellow-900/10">?</div>
+                            <div id="coin-2" class="coin-icon shadow-lg shadow-yellow-900/10">?</div>
+                            <div id="coin-3" class="coin-icon shadow-lg shadow-yellow-900/10">?</div>
+                        </div>
+                        <button id="cast-btn" onclick="App.cast()" class="w-full py-5 bg-gradient-to-b from-yellow-600 to-yellow-700 text-black font-black rounded-2xl active:scale-95 transition-all shadow-xl hover:brightness-110 uppercase tracking-widest text-sm">开始起卦仪式</button>
+                    </div>
+                </div>
+
+                <!-- 卦象显示：强化比例，强制对齐 -->
+                <div class="grid grid-cols-2 gap-4 h-[440px]">
+                    <div class="glass p-6 rounded-[2.5rem] flex flex-col items-center border border-yellow-900/10 h-full">
+                        <div id="gua-name-ben" class="mb-6 text-sm font-black text-yellow-500 text-center h-16 flex flex-col justify-center gap-1 uppercase tracking-tighter">
+                            <span>本卦待起</span>
+                        </div>
+                        <div id="gua-preview-ben" class="flex flex-col-reverse gap-6 w-full flex-grow px-2"></div>
+                        <p class="mt-6 text-[9px] font-black text-yellow-900 uppercase tracking-[0.3em] opacity-40">Original</p>
+                    </div>
+                    <div class="glass p-6 rounded-[2.5rem] flex flex-col items-center border border-cyan-900/10 h-full">
+                        <div id="gua-name-bian" class="mb-6 text-sm font-black text-cyan-500 text-center h-16 flex flex-col justify-center gap-1 uppercase tracking-tighter">
+                            <span>变卦待定</span>
+                        </div>
+                        <div id="gua-preview-bian" class="flex flex-col-reverse gap-6 w-full flex-grow px-2"></div>
+                        <p class="mt-6 text-[9px] font-black text-cyan-900 uppercase tracking-[0.3em] opacity-40">Transformed</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 右侧 -->
+            <section class="lg:col-span-8 flex flex-col gap-6">
+                <div class="flex-grow glass rounded-[3rem] flex flex-col overflow-hidden shadow-2xl relative border border-yellow-900/10">
+                    <div class="px-8 py-5 border-b border-yellow-900/10 flex justify-between items-center bg-black/40">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_12px_#22c55e]"></span>
+                            <span class="text-[10px] font-black tracking-widest text-yellow-900 uppercase font-mono">Digital Prophet Terminal</span>
+                        </div>
+                        <div class="flex gap-6">
+                            <button onclick="App.copyAnalysis()" class="text-[9px] text-gray-500 hover:text-yellow-600 font-black uppercase transition-all">复制报告</button>
+                            <button onclick="App.reset()" class="text-[9px] text-red-900 hover:text-red-500 font-black uppercase transition-all">重置系统</button>
+                        </div>
+                    </div>
+                    <div id="output-console" class="p-12 flex-grow overflow-y-auto terminal-scroll">
+                        <div class="mt-32 text-center italic opacity-10 tracking-[1em] text-yellow-900">--- 乾坤万物，皆有定数 ---</div>
+                    </div>
+                    <div id="action-footer" class="hidden p-10 border-t border-yellow-900/10 bg-black/50">
+                        <button id="ai-btn" onclick="App.consultAI()" class="w-full py-6 premium-btn text-white font-black rounded-3xl hover:brightness-125 transition-all active:scale-95 flex items-center justify-center gap-6 group shadow-2xl shadow-yellow-900/10">
+                            <span class="text-cyan-400 font-bold group-hover:animate-ping text-2xl">✧</span> 
+                            <span id="ai-btn-text" class="tracking-[0.2em] text-base uppercase">执行 AI 深度推演协议</span> 
+                            <span class="text-pink-500 font-bold group-hover:animate-ping text-2xl">✧</span>
                         </button>
                     </div>
                 </div>
-
-                <div class="text-[10px] text-yellow-900 text-center italic">
-                    * 股市有风险，预测仅供参考 *
-                </div>
-            </div>
-        </div>
+                <div class="glass p-4 rounded-2xl"><div id="history-list" class="flex gap-4 overflow-x-auto pb-2 terminal-scroll px-2"></div></div>
+            </section>
+        </main>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-4">
-        <div class="max-w-md w-full cyber-border bg-black p-8 rounded-lg">
-            <h3 class="text-xl font-bold mb-4">系统配置</h3>
-            <p class="text-xs text-gray-500 mb-6">请输入您的 Gemini API Key。该 Key 将仅保存在您的浏览器本地缓存中。</p>
-            <input type="password" id="api-key-input" placeholder="输入 Gemini API Key" class="w-full bg-gray-900 border border-gray-700 p-3 mb-6 text-white rounded">
+    <!-- 设置弹窗 -->
+    <div id="settings-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 p-6 bg-black/95 backdrop-blur-3xl">
+        <div class="max-w-md w-full border border-yellow-900/30 bg-[#0a0a0a] p-10 rounded-[3.5rem] shadow-2xl text-xs overflow-y-auto max-h-[90vh]">
+            <h3 class="text-3xl font-black mb-10 text-yellow-600 border-b border-yellow-900/20 pb-6 tracking-tighter italic text-center">KERNEL SYSTEM</h3>
+            
+            <div class="p-8 bg-gradient-to-br from-yellow-950/30 to-cyan-950/30 rounded-[3rem] border border-yellow-900/20 shadow-inner mb-10 text-center">
+                <label class="text-yellow-500 uppercase mb-6 block font-black tracking-[0.3em]">钻石会员激活码</label>
+                <input type="text" id="access-code-input" placeholder="输入 VIP666 即可解锁" class="w-full bg-black border border-cyan-900/30 p-6 rounded-2xl text-cyan-400 outline-none text-center text-3xl font-mono mb-6 shadow-2xl">
+                <div class="text-[10px] text-gray-500 space-y-3 leading-relaxed opacity-60 italic">
+                    <p>● API 节点：内置高性能安全通道</p>
+                    <p>● 权限：全人格解卦库 + Thinking 深度逻辑</p>
+                </div>
+            </div>
+
+            <!-- 联系方式 -->
+            <div class="mb-10 text-center p-4 bg-yellow-900/10 rounded-2xl border border-yellow-900/20">
+                <p class="text-yellow-700 font-bold mb-2 uppercase tracking-widest text-[9px]">获取激活码 / 技术支持</p>
+                <p class="text-lg font-black text-yellow-500 font-mono select-all">WeChat: timecoefficient</p>
+            </div>
+
             <div class="flex gap-4">
-                <button onclick="saveSettings()" class="flex-grow py-3 bg-yellow-600 text-black font-bold rounded">保存 (SAVE)</button>
-                <button onclick="toggleSettings()" class="px-6 py-3 border border-gray-700 rounded">取消</button>
+                <button onclick="App.saveSettings()" class="flex-grow py-5 bg-yellow-600 text-black font-black rounded-2xl active:scale-95 shadow-xl hover:brightness-110 uppercase tracking-widest">确认保存</button>
+                <button onclick="App.toggleSettings()" class="px-8 py-5 border border-yellow-900/20 rounded-2xl text-gray-500 hover:text-white transition-colors">取消</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentStep = 0;
-        let guaData = [];
-        let config = { apiKey: localStorage.getItem('gemini_api_key') || "" };
+        const GUA_DICT = {
+            "111111": { name: "乾为天", desc: "自强不息，元亨利贞" }, "000000": { name: "坤为地", desc: "柔顺厚德，含弘光大" },
+            "111000": { name: "地天泰", desc: "阴阳交感，内外亨通" }, "000111": { name: "天地否", desc: "上下不交，闭塞沉闷" },
+            "010001": { name: "水雷屯", desc: "草木萌发，宜守待时" }, "101010": { name: "离为火", desc: "附丽光明，文明昌盛" },
+            "010101": { name: "坎为水", desc: "重重险陷，信守诚行" }, "100010": { name: "山水蒙", desc: "童蒙启智，寻师求道" },
+            "111010": { name: "水天需", desc: "等待时机，饮食宽心" }, "010111": { name: "天水讼", desc: "争端不决，宜和止争" },
+            "000010": { name: "地水师", desc: "劳师动众，需有纪律" }, "010000": { name: "水地比", desc: "亲辅相依，互惠互利" },
+            "110111": { name: "风天小畜", desc: "密云不雨，蓄势待发" }, "111011": { name: "天泽履", desc: "小心翼翼，如履薄冰" }
+        };
 
-        function updateKeyStatus() {
-            const status = document.getElementById('key-status');
-            if (config.apiKey) {
-                status.innerText = "API Key 已就绪";
-                status.className = "text-[10px] uppercase tracking-widest text-green-700";
-            } else {
-                status.innerText = "API Key 未配置";
-                status.className = "text-[10px] uppercase tracking-widest text-red-800";
-            }
-        }
-        updateKeyStatus();
+        const App = {
+            config: {
+                apiKey: "sk-I4HEv6a0W2Rfbxb2l5ZCyLMUFRmo1qmszFbJy89ScxFwexDA",
+                baseUrl: "https://once.novai.su/v1",
+                model: "gemini-3-pro-preview-thinking",
+                accessCode: localStorage.getItem('div_code_v5') || "",
+                isPremium: false
+            },
+            state: { 
+                currentStep: 0, guaData: [], isCasting: false, isConsulting: false, 
+                divinationTime: null, hubData: { btc: null, eth: null }, usageToday: 0,
+                inputTimer: null
+            },
 
-        function toggleSettings() {
-            const modal = document.getElementById('settings-modal');
-            modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                document.getElementById('api-key-input').value = config.apiKey;
-            }
-        }
+            init() {
+                this.validatePremium(); this.checkUsage(); this.updateUI();
+                this.startMarketHub(); this.loadHistory(); this.updateGanzhi();
+                console.log("Kernel v5.7 - Operation Mode.");
+            },
 
-        function saveSettings() {
-            const val = document.getElementById('api-key-input').value;
-            config.apiKey = val;
-            localStorage.setItem('gemini_api_key', val);
-            updateKeyStatus();
-            toggleSettings();
-        }
+            updateGanzhi() {
+                const date = new Date();
+                const tiangan = "甲乙丙丁戊己庚辛壬癸";
+                const dizhi = "子丑寅卯辰巳午未申酉戌亥";
+                const ganzhi = `${tiangan[date.getFullYear()%10]}${dizhi[date.getFullYear()%12]}年 ${tiangan[(date.getMonth()+1)%10]}${dizhi[(date.getMonth()+1)%12]}月`;
+                if(document.getElementById('hub-ganzhi')) document.getElementById('hub-ganzhi').innerText = ganzhi;
+                if(document.getElementById('hub-time')) document.getElementById('hub-time').innerText = date.toLocaleTimeString();
+                setTimeout(() => this.updateGanzhi(), 1000);
+            },
 
-        function tossCoins() {
-            if (currentStep >= 6) return;
-            const btn = document.getElementById('btn-toss');
-            btn.disabled = true;
-            
-            const coins = [document.getElementById('coin-1'), document.getElementById('coin-2'), document.getElementById('coin-3')];
-            let results = [];
+            validatePremium() {
+                this.config.isPremium = (this.config.accessCode === "VIP666" || this.config.accessCode.startsWith("PRM-"));
+            },
 
-            coins.forEach(c => c.classList.add('coin-spin'));
-
-            setTimeout(() => {
-                coins.forEach(c => {
-                    c.classList.remove('coin-spin');
-                    const res = Math.random() > 0.5 ? 3 : 2;
-                    results.push(res);
-                    c.innerText = res === 3 ? "阳" : "阴";
-                    c.style.color = res === 3 ? "#d4af37" : "#555";
-                });
-                const sum = results.reduce((a, b) => a + b, 0);
-                processLine(sum);
-                btn.disabled = false;
-            }, 600);
-        }
-
-        function processLine(sum) {
-            currentStep++;
-            document.getElementById('step-count').innerText = `第 ${currentStep}/6 爻`;
-            
-            let type = (sum === 7 || sum === 9) ? "yang" : "yin";
-            let moving = (sum === 6 || sum === 9);
-            
-            guaData.push({ sum, type, moving });
-            renderGua();
-            if (currentStep === 6) finishGua();
-        }
-
-        function renderGua() {
-            const display = document.getElementById('gua-display');
-            display.innerHTML = "";
-            guaData.forEach(line => {
-                const row = document.createElement('div');
-                row.className = "flex items-center";
-                const lineInner = document.createElement('div');
-                lineInner.className = `gua-line ${line.type === 'yang' ? 'yang-line' : 'yin-line'} flex-grow rounded`;
-                row.appendChild(lineInner);
-                if (line.moving) {
-                    const m = document.createElement('span');
-                    m.className = "moving-mark";
-                    m.innerText = line.sum === 9 ? "○" : "×";
-                    row.appendChild(m);
+            checkUsage() {
+                const today = new Date().toDateString();
+                if (localStorage.getItem('last_use_date') !== today) {
+                    localStorage.setItem('usage_count', '0');
+                    localStorage.setItem('last_use_date', today);
                 }
-                display.appendChild(row);
-            });
-        }
+                this.state.usageToday = parseInt(localStorage.getItem('usage_count') || '0');
+            },
 
-        function finishGua() {
-            document.getElementById('btn-toss').innerText = "起卦完成";
-            document.getElementById('btn-toss').disabled = true;
-            document.getElementById('ai-section').classList.remove('hidden');
-            document.getElementById('analysis-content').innerHTML = `
-                <div class="p-4 bg-yellow-900/10 rounded border border-yellow-900/30">
-                    <p class="text-yellow-500 font-bold mb-2">排盘完成</p>
-                    <p class="text-xs">当前卦象记录完毕。由于六爻断卦涉及复杂的干支、月令、旬空等逻辑，建议点击下方按钮，由 Gemini Pro 结合当前时空背景进行全量推演。</p>
-                </div>
-            `;
-        }
+            async startMarketHub() {
+                const fetchPrices = async () => {
+                    try {
+                        const [btcRes, ethRes] = await Promise.all([
+                            fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT'),
+                            fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT')
+                        ]);
+                        const oldBtc = this.state.hubData.btc?.lastPrice;
+                        this.state.hubData.btc = await btcRes.json();
+                        this.state.hubData.eth = await ethRes.json();
+                        
+                        if (this.state.hubData.btc.lastPrice !== oldBtc) {
+                            const hb = document.getElementById('hub-btc');
+                            const he = document.getElementById('hub-eth');
+                            if(hb) hb.classList.add('price-update-flash');
+                            if(he) he.classList.add('price-update-flash');
+                            setTimeout(() => {
+                                if(hb) hb.classList.remove('price-update-flash');
+                                if(he) he.classList.remove('price-update-flash');
+                            }, 800);
+                        }
 
-        async function askGemini() {
-            if (!config.apiKey) {
-                alert("请先点击左上角齿轮图标，配置您的 Gemini API Key");
-                toggleSettings();
-                return;
-            }
+                        // 实时更新输入框右侧的价格徽章
+                        let symbol = document.getElementById('target-input').value.trim().toUpperCase();
+                        if (symbol) {
+                            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                const badge = document.getElementById('input-price-badge');
+                                if(badge) badge.innerText = `$${parseFloat(data.lastPrice).toLocaleString()}`;
+                            }
+                        }
 
-            const stock = document.getElementById('stock-name').value || "未知标的";
-            const btn = document.getElementById('btn-ai');
-            const content = document.getElementById('analysis-content');
-            
-            btn.disabled = true;
-            btn.innerText = "正在向星辰请求启示...";
+                        this.updateUI();
+                    } catch (e) {}
+                };
+                fetchPrices(); setInterval(fetchPrices, 1000);
+            },
 
-            const prompt = `你是一位精通周易六爻的金融分析师。用户预测标的：${stock}。起卦记录（从初爻至上爻）：${JSON.stringify(guaData)}。请分析：1.卦象象义 2.财爻/子孙爻/兄弟爻强弱 3.针对股市的涨跌预测和操作建议。`;
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${config.apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            async cast() {
+                if (this.state.currentStep >= 6 || this.state.isCasting) return;
+                if (this.state.currentStep === 0) this.state.divinationTime = new Date().toLocaleString();
+                this.state.isCasting = true; this.updateUI();
+                [1,2,3].forEach(id => {
+                    const el = document.getElementById(`coin-${id}`);
+                    if(el) { el.classList.add('coin-spin'); el.innerText = "..."; }
                 });
+                setTimeout(() => {
+                    const resArr = [1, 2, 3].map(() => Math.random() > 0.5 ? 3 : 2);
+                    const sum = resArr.reduce((a, b) => a + b, 0);
+                    this.state.guaData.push({ sum, type: (sum === 7 || sum === 9) ? 'yang' : 'yin', isMoving: (sum === 6 || sum === 9) });
+                    this.state.currentStep++; this.state.isCasting = false;
+                    [1,2,3].forEach((id,i) => {
+                        const el = document.getElementById(`coin-${id}`);
+                        if(el) { el.classList.remove('coin-spin'); el.innerText = resArr[i] === 3 ? "阳" : "阴"; el.style.color = resArr[i] === 3 ? "var(--gold)" : "#444"; }
+                    });
+                    this.updateUI();
+                }, 600);
+            },
 
-                const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "解析失败，请检查 API Key 是否有效。";
+            async consultAI() {
+                if (!this.config.isPremium && this.state.usageToday >= 1) {
+                    this.logToConsole(`<div class="p-8 text-center glass border border-red-900/30 rounded-3xl">
+                        <h4 class="text-red-500 font-black text-xl mb-3 uppercase">Quota Exceeded</h4>
+                        <p class="text-gray-500 text-xs mb-6 leading-relaxed">免费版每日限 1 次推演。升级钻石会员解锁无限次数、全人格库及 Thinking 模型。</p>
+                        <button onclick="App.toggleSettings()" class="text-cyan-400 font-bold underline text-[10px] tracking-widest uppercase">激活 Premium 权限</button>
+                    </div>`, true);
+                    return;
+                }
+
+                this.state.isConsulting = true;
+                const btnText = document.getElementById('ai-btn-text');
+                const btn = document.getElementById('ai-btn');
+                if(btnText) btnText.innerText = "神思入定，同步星轨...";
+                if(btn) btn.classList.add('meditating');
+                this.updateUI();
+
+                const target = document.getElementById('target-input').value || "市场走势";
+                const benCode = this.state.guaData.map(l => l.type === 'yang' ? '1' : '0').join('');
+                const bianCode = this.state.guaData.map(l => l.isMoving ? (l.type === 'yang' ? '0' : '1') : (l.type === 'yang' ? '1' : '0')).join('');
+
+                const prompt = `你是一位精通周易六爻与量化博弈的顶级推演大师。
+                【当前时刻】：${this.state.divinationTime}
+                【预测标的】：${target}
+                【本卦】：${benCode} (${GUA_DICT[benCode]?.name || '未知'})
+                【变卦】：${bianCode} (${GUA_DICT[bianCode]?.name || '未知'})
+                要求：1.深度解析本变转化因果 2.预测精确变盘应期 3.策略建议。
+                注意：开头用【摘要：内容】。使用皇家黄风格输出纯净 Markdown。严禁输出任何 # 或 * 原始符号。`;
+
+                try {
+                    const res = await fetch(`${this.config.baseUrl}/chat/completions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.config.apiKey}` },
+                        body: JSON.stringify({ model: this.config.model, messages: [{ role: "user", content: prompt }] })
+                    });
+                    const data = await res.json();
+                    const result = data.choices[0].message.content;
+                    this.logToConsole(`<div class="analysis-content">${marked.parse(result)}</div>`, true);
+                    const summaryMatch = result.match(/【摘要：(.*?)】/);
+                    if (summaryMatch) document.getElementById('hub-timing-text').innerText = summaryMatch[1];
+                    if (!this.config.isPremium) { this.state.usageToday++; localStorage.setItem('usage_count', this.state.usageToday.toString()); }
+                    this.saveToHistory(target, result);
+                } catch (err) {
+                    this.logToConsole(`<div class="text-red-500 font-bold p-6">推演阻断: ${err.message}</div>`, true);
+                } finally {
+                    this.state.isConsulting = false;
+                    if(btnText) btnText.innerText = "执行 AI 深度推演协议";
+                    if(btn) btn.classList.remove('meditating');
+                    this.updateUI();
+                }
+            },
+
+            updateUI() {
+                const { btc, eth } = this.state.hubData;
+                const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
                 
-                content.innerHTML += `
-                    <div class="mt-4 p-4 bg-cyan-950/20 border-l border-cyan-500 text-cyan-100 text-xs whitespace-pre-wrap leading-relaxed">
-                        <strong class="block text-cyan-400 mb-2">GEMINI 深度解读：</strong>
-                        ${text}
-                    </div>
-                `;
-                btn.innerText = "解卦完成";
-            } catch (e) {
-                alert("调用失败，请检查网络或 API Key");
-                btn.disabled = false;
-                btn.innerText = "重新尝试解卦";
+                if (btc) {
+                    setEl('hub-btc-price', `$${parseFloat(btc.lastPrice).toLocaleString()}`);
+                    const chg = document.getElementById('hub-btc-change');
+                    if (chg) {
+                        chg.innerText = `${parseFloat(btc.priceChangePercent)>=0?'▲':'▼'} ${btc.priceChangePercent}%`;
+                        chg.className = `text-xs font-bold ${parseFloat(btc.priceChangePercent)>=0?'text-green-500':'text-red-500'}`;
+                    }
+                }
+                if (eth) {
+                    setEl('hub-eth-price', `$${parseFloat(eth.lastPrice).toLocaleString()}`);
+                    const chg = document.getElementById('hub-eth-change');
+                    if (chg) {
+                        chg.innerText = `${parseFloat(eth.priceChangePercent)>=0?'▲':'▼'} ${eth.priceChangePercent}%`;
+                        chg.className = `text-xs font-bold ${parseFloat(eth.priceChangePercent)>=0?'text-green-500':'text-red-500'}`;
+                    }
+                }
+
+                // 卦象对齐显示
+                const benCode = this.state.guaData.map(l => l.type === 'yang' ? '1' : '0').join('');
+                const benGua = GUA_DICT[benCode];
+                const bGuaEl = document.getElementById('gua-preview-ben');
+                const bGuaName = document.getElementById('gua-name-ben');
+                
+                if (bGuaEl) {
+                    bGuaEl.innerHTML = this.state.guaData.map(l => `
+                        <div class="flex items-center gap-2"><div class="gua-line ${l.type==='yang'?'yang-line':'yin-line'} flex-grow"></div>
+                        <div class="w-4 text-[10px] font-black text-orange-600">${l.isMoving?(l.type==='yang'?'○':'×'):''}</div></div>`).join('');
+                }
+                if (bGuaName) {
+                    bGuaName.innerHTML = benGua ? `<span>${benGua.name}</span><span class="text-[9px] text-yellow-900 font-normal mt-1">${benGua.desc}</span>` : (this.state.currentStep===6 ? "排盘成功" : "本卦待起");
+                }
+
+                const biGuaEl = document.getElementById('gua-preview-bian');
+                const biGuaName = document.getElementById('gua-name-bian');
+                if (this.state.currentStep === 6) {
+                    const bianData = this.state.guaData.map(l => l.isMoving ? { type: (l.type === 'yang' ? 'yin' : 'yang') } : { type: l.type });
+                    const bianCode = bianData.map(l => l.type === 'yang' ? '1' : '0').join('');
+                    const bianGua = GUA_DICT[bianCode];
+                    if(biGuaEl) {
+                        biGuaEl.innerHTML = bianData.map(l => `
+                            <div class="flex items-center gap-2 px-1"><div class="gua-line ${l.type==='yang'?'yang-line':'yin-line'} flex-grow shadow-lg shadow-cyan-900/10"></div><div class="w-2"></div></div>`).join('');
+                    }
+                    if(biGuaName) biGuaName.innerHTML = bianGua ? `<span>${bianGua.name}</span><span class="text-[9px] text-cyan-900 font-normal mt-1">${bianGua.desc}</span>` : "变卦(无动爻)";
+                }
+
+                document.getElementById('action-footer').classList.toggle('hidden', this.state.currentStep < 6);
+                const sl = document.getElementById('status-label');
+                if (sl) {
+                    sl.innerText = this.config.isPremium ? "PREMIUM" : "免费用户";
+                    sl.className = `text-[8px] font-black px-2 py-0.5 rounded uppercase ${this.config.isPremium ? 'text-cyan-400 bg-cyan-950/40' : 'text-yellow-500 bg-yellow-900/40'}`;
+                }
+                setEl('usage-count', this.config.isPremium ? "INF" : `REMAINING: ${1 - this.state.usageToday}`);
+                
+                const cb = document.getElementById('cast-btn');
+                if (cb) {
+                    cb.disabled = (this.state.currentStep >= 6 || this.state.isCasting);
+                    cb.innerText = this.state.currentStep >= 6 ? "卦象已成" : "掷 杯 起 卦 (CAST)";
+                }
+            },
+
+            onInputChange() {
+                // 仅处理显示初始化
+                let symbol = document.getElementById('target-input').value.trim();
+                if(!symbol) document.getElementById('input-price-badge').innerText = "";
+            },
+
+            loadHistory() {
+                const hist = JSON.parse(localStorage.getItem('div_history') || '[]');
+                const hEl = document.getElementById('history-list');
+                if (hEl) {
+                    hEl.innerHTML = hist.map((h, i) => `
+                        <div class="min-w-[150px] glass p-4 rounded-2xl text-[9px] cursor-pointer hover:bg-yellow-950/20 active:scale-95 transition-all shadow-inner" onclick="App.recallHistory(${i})">
+                            <p class="font-black text-yellow-600 truncate uppercase tracking-widest">${h.target}</p>
+                            <p class="opacity-30 mt-2 font-mono">${h.date}</p>
+                        </div>`).join('');
+                }
+            },
+            saveToHistory(target, content) {
+                let hist = JSON.parse(localStorage.getItem('div_history') || '[]');
+                hist.unshift({ target, content, date: new Date().toLocaleDateString() });
+                hist = hist.slice(0, 5); localStorage.setItem('div_history', JSON.stringify(hist));
+                this.loadHistory();
+            },
+            recallHistory(index) {
+                const hist = JSON.parse(localStorage.getItem('div_history') || '[]');
+                this.logToConsole(`<div class="analysis-content">${marked.parse(hist[index].content)}</div>`, true);
+            },
+            logToConsole(html, replace = false) {
+                const con = document.getElementById('output-console');
+                if (!con) return;
+                if (replace) con.innerHTML = html; else { const d = document.createElement('div'); d.innerHTML = html; con.appendChild(d); }
+                con.scrollTop = 0;
+            },
+            reset() { 
+                this.state = { ...this.state, currentStep: 0, guaData: [], isCasting: false, isConsulting: false, divinationTime: null }; 
+                this.updateUI();
+                document.getElementById('hub-timing-text').innerText = "待天机同步...";
+                document.getElementById('gua-preview-bian').innerHTML = ''; document.getElementById('gua-name-bian').innerText = '变卦待定';
+                document.getElementById('gua-name-ben').innerText = '本卦待起';
+                document.getElementById('input-price-badge').innerText = '';
+                document.getElementById('target-input').value = "";
+                [1,2,3].forEach(id => { const el = document.getElementById(`coin-${id}`); if(el) el.innerText = "?"; el.style.color = "var(--gold)"; });
+                this.logToConsole("<div class='mt-32 text-center italic opacity-10 tracking-[1em] text-yellow-900'>--- 乾坤重置，万象更新 ---</div>", true);
+            },
+            toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); },
+            saveSettings() {
+                const aci = document.getElementById('access-code-input');
+                if (aci) this.config.accessCode = aci.value.trim();
+                localStorage.setItem('div_code_v5', this.config.accessCode);
+                this.validatePremium(); this.updateUI(); this.toggleSettings();
+            },
+            copyAnalysis() {
+                const con = document.getElementById('output-console').innerText;
+                const el = document.createElement('textarea'); el.value = con; document.body.appendChild(el); el.select();
+                document.execCommand('copy'); document.body.removeChild(el);
             }
-        }
+        };
+        window.onload = () => App.init();
     </script>
 </body>
 </html>
